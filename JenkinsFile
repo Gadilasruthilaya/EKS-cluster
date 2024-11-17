@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+    
+     tools {
+        terraform 'terraform1.57'
+    }
+
+
+    stages {
+        stage('git checkout') {
+            steps {
+               git branch: 'main', url: 'https://github.com/Gadilasruthilaya/EKS-cluster.git'
+            }
+        }
+        
+         stage('terraform') {
+            steps {
+               sh 'terraform -v'
+               dir('/var/lib/jenkins/workspace/terraform-jenkins') {
+                withCredentials([usernamePassword(credentialsId: 'aws-cred', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+   
+                    sh "terraform init"    
+                    sh "terraform plan"
+                    //sh "terraform apply  --auto-approve"
+                    sh "terraform destroy --auto-approve"
+                 }
+  
+              } 
+            }
+        }
+    }
+}
